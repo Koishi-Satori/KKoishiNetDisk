@@ -5,6 +5,7 @@ import top.kkoishi.netdisk.client.Constants.EXIT_CMDERR
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.jvm.Throws
 
 /**
  * This class is used to process the arguments in GNU/UNIX style, and run the NetDisk.
@@ -12,13 +13,43 @@ import kotlin.io.path.exists
  * @author KKoishi_
  */
 class NetDiskTask {
-    private val recorgnizedOptions: Array<Option> = arrayOf(
-
+    private val context: Context = Context()
+    private val recognizedOptions: Array<Option> = arrayOf(
+        object : Option(false, "-h", "-?", "--help") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.help = true
+            }
+        },
+        object : Option(false, "-v", "--version") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.version = true
+            }
+        },
+        object : Option(false, "-r", "--recursive") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.recursive = true
+            }
+        },
+        object : Option(true, "-d", "--address") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.address = arg
+            }
+        },
+        object : Option(true, "-p", "--password") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.password = arg
+            }
+        }
     )
     private val paths = ArrayDeque<Path>(4)
+    private val options: Options = Options.instance(context)
 
     fun processOptions(args: Array<String>): Int {
         try {
+            if (args.isEmpty()) {
+                options.nogui = false
+                return run()
+            }
             processOptions0(args)
 
             return run()
@@ -48,9 +79,9 @@ class NetDiskTask {
         TODO()
     }
 
+    @Throws(BadArgs::class)
     private fun processOptions0(args: Array<String>) {
         val rest = args.iterator()
-        val noArgs = !rest.hasNext()
 
         while (rest.hasNext()) {
             val arg = rest.next()
@@ -64,12 +95,34 @@ class NetDiskTask {
                     throw rs as BadArgs
             }
         }
+
+        if (paths.isEmpty() && !(options.help || options.version))
+            throw BadArgs("err.no.paths.specified")
+
+        if (options.help)
+            showHelp()
+
+        if (options.version)
+            showVersion()
     }
 
-    private fun processOption(arg: String, rest: Iterator<String>) {
-
+    @Throws(BadArgs::class)
+    private fun processOption(name: String, rest: Iterator<String>) {
+        for (option in recognizedOptions) {
+            if (option.matches(name)) {
+                if (option.hasArg) {
+                    if (rest.hasNext())
+                        option.process(this, name, rest.next())
+                    else
+                        throw BadArgs("err.missing.arg", name).showUsage(true)
+                } else
+                    option.process(this, name, "")
+                return
+            }
+        }
     }
 
+    @Throws(BadArgs::class)
     private fun ensurePath(p: String): Any {
         if (p.isEmpty())
             return BadArgs("io.path.existence", p)
@@ -91,6 +144,14 @@ class NetDiskTask {
         TODO()
     }
 
+    private fun showHelp() {
+        TODO()
+    }
+
+    private fun showVersion() {
+        TODO()
+    }
+
     @Suppress("UNCHECKED_CAST")
     private inner class BadArgs(val key: String, vararg args: Any) : Exception(getMessage(key, args)) {
         val args: Array<Any> = args as Array<Any>
@@ -103,7 +164,7 @@ class NetDiskTask {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private abstract inner class Option(val hasArg: Boolean, vararg aliases: String) {
+    private abstract class Option(val hasArg: Boolean, vararg aliases: String) {
         private val aliases: Array<String> = aliases as Array<String>
 
         /**
@@ -119,7 +180,6 @@ class NetDiskTask {
             return false
         }
 
-        abstract fun hasAdditionalOption(): Boolean
-        abstract fun process(task: NetDiskTask, arg: String, other: String)
+        abstract fun process(task: NetDiskTask, opt: String, arg: String)
     }
 }
