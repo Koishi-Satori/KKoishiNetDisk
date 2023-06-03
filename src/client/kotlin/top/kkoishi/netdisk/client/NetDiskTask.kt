@@ -30,7 +30,7 @@ class NetDiskTask {
                 task.options.recursive = true
             }
         },
-        object : Option(true, "-d", "--address") {
+        object : Option(true, "-a", "--address") {
             override fun process(task: NetDiskTask, opt: String, arg: String) {
                 task.options.address = arg
             }
@@ -39,9 +39,24 @@ class NetDiskTask {
             override fun process(task: NetDiskTask, opt: String, arg: String) {
                 task.options.password = arg
             }
+        },
+        object : Option(false, "-u", "--upload") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.upload = true
+            }
+        },
+        object : Option(false, "-d", "--download") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.upload = false
+            }
+        },
+        object : Option(true, "-t", "--target") {
+            override fun process(task: NetDiskTask, opt: String, arg: String) {
+                task.options.target = arg
+            }
         }
     )
-    private val paths = ArrayDeque<Path>(4)
+    private val paths = ArrayDeque<String>(4)
     private val options: Options = Options.instance(context)
 
     fun processOptions(args: Array<String>): Int {
@@ -88,11 +103,14 @@ class NetDiskTask {
             if (arg.startsWith('-') || arg.startsWith("--")) {
                 processOption(arg, rest)
             } else {
-                val rs = ensurePath(arg)
-                if (rs is Path)
-                    paths.addLast(rs)
-                else
-                    throw rs as BadArgs
+                if (options.upload) {
+                    val rs = ensurePath(arg)
+                    if (rs is Path)
+                        paths.addLast(rs.toString())
+                    else
+                        throw rs as BadArgs
+                } else
+                    paths.addLast(arg)
             }
         }
 

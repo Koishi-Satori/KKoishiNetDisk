@@ -20,6 +20,8 @@ class Options private constructor(context: Context) {
     var help: Boolean = false
     var version: Boolean = false
     var recursive: Boolean = false
+    var upload: Boolean = false
     var address: String = ""
     var password: String = ""
+    var target: String = ""
 }
