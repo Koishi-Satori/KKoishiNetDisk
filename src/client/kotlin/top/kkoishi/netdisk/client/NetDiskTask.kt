@@ -2,6 +2,8 @@ package top.kkoishi.netdisk.client
 
 import top.kkoishi.netdisk.client.Constants.EXIT_ABNORMAL
 import top.kkoishi.netdisk.client.Constants.EXIT_CMDERR
+import top.kkoishi.netdisk.client.Constants.EXIT_ERROR
+import top.kkoishi.netdisk.client.Constants.EXIT_OK
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -59,6 +61,13 @@ class NetDiskTask {
     private val paths = ArrayDeque<String>(4)
     private val options: Options = Options.instance(context)
 
+    /**
+     * Process the program arguments and return the exiting state.
+     *
+     * @param args the program arguments
+     * @return state
+     * @see Constants
+     */
     fun processOptions(args: Array<String>): Int {
         try {
             if (args.isEmpty()) {
@@ -87,13 +96,38 @@ class NetDiskTask {
             }
             reportError("err.internal.error", eArgs)
             return EXIT_ABNORMAL
+        } catch (re: RuntimeError) {
+            val eArgs: Array<Any>
+            if (re.cause == null)
+                eArgs = re.args
+            else {
+                with(re.args) {
+                    eArgs = Array(size + 1) {}
+                    eArgs[0] = re.cause
+                    System.arraycopy(this, 0, eArgs, 1, size)
+                }
+            }
+            reportError("err.runtime.error", eArgs)
+            return EXIT_ERROR
+        } catch (t: Throwable) {
+            reportError("err.generic", arrayOf(t))
+            return EXIT_ERROR
         }
     }
 
+    @Throws(InternalError::class, RuntimeError::class)
     private fun run(): Int {
-        TODO()
+        //TODO: Finish this
+        return EXIT_OK
     }
 
+    /**
+     * Process options.
+     *
+     * @param args the program arguments
+     * @see Option
+     * @see Options
+     */
     @Throws(BadArgs::class)
     private fun processOptions0(args: Array<String>) {
         val rest = args.iterator()
@@ -181,6 +215,11 @@ class NetDiskTask {
         }
     }
 
+    /**
+     * A class used to match arguments and process them.
+     *
+     * @author KKoishi_
+     */
     @Suppress("UNCHECKED_CAST")
     private abstract class Option(val hasArg: Boolean, vararg aliases: String) {
         private val aliases: Array<String> = aliases as Array<String>
@@ -188,6 +227,7 @@ class NetDiskTask {
         /**
          * This method checks if the given argument meets one of these in args.
          *
+         * @param arg the input argument
          * @return if meets.
          */
         fun matches(arg: String): Boolean {
@@ -198,6 +238,13 @@ class NetDiskTask {
             return false
         }
 
+        /**
+         * Process the arguments.
+         *
+         * @param task NetDiskTask instance
+         * @param opt the option
+         * @param arg the extensional argument
+         */
         abstract fun process(task: NetDiskTask, opt: String, arg: String)
     }
 }

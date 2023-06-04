@@ -8,6 +8,7 @@ class Options private constructor(context: Context) {
 
     companion object {
         @JvmStatic
+        @Suppress("SENSELESS_COMPARISON")
         fun instance(context: Context): Options {
             var instance = context[Options::class.java]
             if (instance == null)
@@ -24,4 +25,6 @@ class Options private constructor(context: Context) {
     var address: String = ""
     var password: String = ""
     var target: String = ""
+    var maxThreads: Int = Runtime.getRuntime().availableProcessors()
+    var bufferSize: Int = 2048
 }
