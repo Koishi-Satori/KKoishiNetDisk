@@ -1,0 +1,15 @@
+{
+  "gui.title": "KoishiNetDisk",
+  "main.usage.summary": "usage: {0} <options> <files> or {0}.\nuse --help for more information about the options.\nYou can open gui version simply use {0}",
+  "err.missing.arg": "Missing argument for the option: {0}.",
+  "err.no.paths.specified": "No paths is specified.",
+  "main.opt.all": "Usage for extra arguments：<option> <extra arguments>\nSuch as: {0} --target /home/knet_downloads --upload --address 114:114:5:14 -r",
+  "main.opt.help": "{0} - Show this page.",
+  "main.opt.version": "{0} - Show the version of KoishiNetDisk",
+  "main.opt.recursive": "{0} - Recursive upload/download all the files and directories in the specified paths.",
+  "main.opt.address": "{0} - Specify the remote server ip.",
+  "main.opt.password": "{0} - Specify the password, if has.",
+  "main.opt.upload": "{0} - Switch to upload mode.",
+  "main.opt.download": "{0} - Switch to download mode.",
+  "main.opt.target": "{0} - Specify the target directory for download/upload, that means the files downloaded/uploaded will be stored in it.\n\t\t\tIf this is not specified, the files will be stored in /files of the working dir."
+}

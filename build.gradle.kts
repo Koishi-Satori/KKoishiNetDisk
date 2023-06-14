@@ -14,16 +14,17 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    compileOnly(fileTree("./lib"))
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile>() {
+tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("top.kkoishi.netdisk.MainKt")
 }

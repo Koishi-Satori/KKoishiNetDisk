@@ -4,8 +4,13 @@ import top.kkoishi.netdisk.client.Constants.EXIT_ABNORMAL
 import top.kkoishi.netdisk.client.Constants.EXIT_CMDERR
 import top.kkoishi.netdisk.client.Constants.EXIT_ERROR
 import top.kkoishi.netdisk.client.Constants.EXIT_OK
+import top.kkoishi.netdisk.client.io.Messages
+import top.kkoishi.netdisk.client.swing.NetDiskWindow
+import java.io.PrintWriter
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
+import java.util.*
+import kotlin.collections.ArrayDeque
 import kotlin.io.path.exists
 import kotlin.jvm.Throws
 
@@ -16,6 +21,11 @@ import kotlin.jvm.Throws
  */
 class NetDiskTask {
     private val context: Context = Context()
+
+    init {
+        context[NetDiskTask::class.java] = this
+    }
+
     private val recognizedOptions: Array<Option> = arrayOf(
         object : Option(false, "-h", "-?", "--help") {
             override fun process(task: NetDiskTask, opt: String, arg: String) {
@@ -60,6 +70,8 @@ class NetDiskTask {
     )
     private val paths = ArrayDeque<String>(4)
     private val options: Options = Options.instance(context)
+    private val messages: Messages = Messages.instance(context)
+    private val log = PrintWriter(System.out, true)
 
     /**
      * Process the program arguments and return the exiting state.
@@ -78,9 +90,9 @@ class NetDiskTask {
 
             return run()
         } catch (ba: BadArgs) {
-            reportError(ba.key, ba.args)
+            reportError(ba.key, *ba.args)
             if (ba.showUsage) {
-                TODO()
+                printLines(getMessage("main.usage.summary", "knetdisk"))
             }
             return EXIT_CMDERR
         } catch (e: InternalError) {
@@ -94,7 +106,7 @@ class NetDiskTask {
                     System.arraycopy(this, 0, eArgs, 1, size)
                 }
             }
-            reportError("err.internal.error", eArgs)
+            reportError("err.internal.error", *eArgs)
             return EXIT_ABNORMAL
         } catch (re: RuntimeError) {
             val eArgs: Array<Any>
@@ -107,17 +119,24 @@ class NetDiskTask {
                     System.arraycopy(this, 0, eArgs, 1, size)
                 }
             }
-            reportError("err.runtime.error", eArgs)
+            reportError("err.runtime.error", *eArgs)
             return EXIT_ERROR
         } catch (t: Throwable) {
-            reportError("err.generic", arrayOf(t))
+            t.printStackTrace()
+            reportError("err.generic", t)
             return EXIT_ERROR
+        } finally {
+            log.flush()
         }
     }
 
     @Throws(InternalError::class, RuntimeError::class)
     private fun run(): Int {
         //TODO: Finish this
+        if (options.nogui)
+            NetDisk(context).run()
+        else
+            NetDiskWindow(context, getMessage("gui.title")).run()
         return EXIT_OK
     }
 
@@ -188,24 +207,32 @@ class NetDiskTask {
         }
     }
 
-    private fun reportError(key: String, args: Array<Any>) {
-        TODO()
+    private fun reportError(key: String, vararg args: Any) {
+        printLines(getMessage(key, *args))
     }
 
     private fun getMessage(key: String, vararg args: Any): String {
-        TODO()
+        return messages.getMessage(key, *args)
     }
 
     private fun showHelp() {
-        TODO()
+        printLines(getMessage("main.opt.all", "knetdisk"))
+        for (option in recognizedOptions) {
+            val name = option.aliases.last().replace(regex = Regex("^-+"), replacement = "")
+            printLines(getMessage("main.opt.$name", option.aliases.joinToString()))
+        }
     }
 
     private fun showVersion() {
         TODO()
     }
 
+    private fun printLines(msg: String) {
+        log.println(msg.replace("\\n", Constants.nl).replace("\\t", "\t"))
+    }
+
     @Suppress("UNCHECKED_CAST")
-    private inner class BadArgs(val key: String, vararg args: Any) : Exception(getMessage(key, args)) {
+    private inner class BadArgs(val key: String, vararg args: Any) : Exception(getMessage(key, *args)) {
         val args: Array<Any> = args as Array<Any>
         var showUsage = false
 
@@ -222,7 +249,7 @@ class NetDiskTask {
      */
     @Suppress("UNCHECKED_CAST")
     private abstract class Option(val hasArg: Boolean, vararg aliases: String) {
-        private val aliases: Array<String> = aliases as Array<String>
+        val aliases: Array<String> = aliases as Array<String>
 
         /**
          * This method checks if the given argument meets one of these in args.

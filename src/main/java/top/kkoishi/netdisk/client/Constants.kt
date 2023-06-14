@@ -6,6 +6,9 @@ object Constants {
     const val EXIT_ERROR = 2
     const val EXIT_ABNORMAL = 3
 
+    @JvmStatic
+    val nl = System.getProperty("line.separator")
+
     /**
      * 64MB.
      */

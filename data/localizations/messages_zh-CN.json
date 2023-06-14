@@ -1,0 +1,15 @@
+{
+  "gui.title": "KoishiNetDisk",
+  "main.usage.summary": "用法: {0} <选项> <文件> 或者 {0}。\n使用--help参数来获取选项信息。\n可以只使用{0}来打开gui版本。",
+  "err.missing.arg": "缺失该选项的必要参数: {0}。",
+  "err.no.paths.specified": "缺少给定的文件路径。",
+  "main.opt.all": "额外参数使用方法：<选项> <额外参数>\n比如，{0} --target /home/knet_downloads --upload --address 114:114:5:14 -r",
+  "main.opt.help": "{0} - 显示帮助界面。",
+  "main.opt.version": "{0} - 显示版本信息。",
+  "main.opt.recursive": "{0} - 递归地上传/下载给定路径里的所有文件和目录。",
+  "main.opt.address": "{0} - 给出远程服务器ip地址。额外参数：ipv4下的地址",
+  "main.opt.password": "{0} - 如果有的话，给定连接密码。额外参数：密码",
+  "main.opt.upload": "{0} - 切换上传模式。",
+  "main.opt.download": "{0} - 切换下载模式。",
+  "main.opt.target": "{0} - 给出上传/下载文件要储存到的地方\n\t\t\t如果这项未被给出，将自动存储在工作目录下的/files目录里。"
+}
